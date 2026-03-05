@@ -812,6 +812,27 @@ body {
   border-radius: 2px;
 }
 
+.version-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--icon-container-border) transparent;
+}
+.version-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.version-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.version-scroll::-webkit-scrollbar-thumb {
+  background: var(--icon-container-border);
+  border-radius: 3px;
+}
+[data-theme="dark"] .version-scroll {
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+[data-theme="dark"] .version-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+}
+
 /* --------------------------------------------------------------------------
    Feature List — Toggle Switch (Radix Switch)
    -------------------------------------------------------------------------- */

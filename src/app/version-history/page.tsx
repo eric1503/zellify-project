@@ -493,7 +493,7 @@ function RestoreButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="label-text-xs flex h-[22px] items-center rounded-[var(--radius-lg)] border px-2.5 transition-colors"
+      className="label-text-xs flex h-[22px] items-center rounded-[var(--radius-lg)] border px-1.5 transition-colors"
       style={{
         background: "var(--button-secondary-bg)",
         borderColor: "var(--button-secondary-border)",
@@ -796,11 +796,9 @@ function DateSectionBlock({ section }: { section: DaySection }) {
       {/* Section header */}
       <div style={{ padding: "16px 16px 4px" }}>
         <span
-          className="label-text-2xs uppercase"
+          className="body-text-3xs uppercase"
           style={{
             color: "var(--text-muted-foreground)",
-            letterSpacing: "0.06em",
-            fontWeight: 600,
           }}
         >
           {section.label}
@@ -948,7 +946,7 @@ export default function VersionHistoryPage() {
         />
 
         {/* Scrollable content */}
-        <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="version-scroll flex flex-1 flex-col overflow-y-auto">
           {allSections.map((section) => (
             <DateSectionBlock key={section.label} section={section} />
           ))}
