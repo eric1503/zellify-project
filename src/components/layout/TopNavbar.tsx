@@ -98,7 +98,6 @@ function WorkspaceSwitcher() {
           name="chevron-expand-y"
           size={18}
           className="ml-1"
-          style={{} as any}
         />
       </button>
 
@@ -160,7 +159,6 @@ function WorkspaceSwitcher() {
                   name="check"
                   size={18}
                   className="ml-auto"
-                  style={{} as any}
                 />
               )}
             </button>

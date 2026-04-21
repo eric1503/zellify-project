@@ -7,7 +7,7 @@ import Script from "next/script";
 /* ------------------------------------------------------------------ */
 /*  TypeScript: declare lord-icon custom element                       */
 /* ------------------------------------------------------------------ */
-declare global {
+declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "lord-icon": React.DetailedHTMLProps<

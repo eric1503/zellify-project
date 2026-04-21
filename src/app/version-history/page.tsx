@@ -864,7 +864,7 @@ function DateSectionBlock({ section }: { section: DaySection }) {
 /*  Blur transition — locked in (Emil design-eng principles)           */
 /*  ease-out [0.23,1,0.32,1], stagger 25ms top→bottom, 120ms each     */
 /* ------------------------------------------------------------------ */
-const EASE = [0.23, 1, 0.32, 1];
+const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 const HIDDEN = { opacity: 0, filter: "blur(3px)", y: 4 };
 const VISIBLE = { opacity: 1, filter: "blur(0px)", y: 0 };
 const EXIT = { opacity: 0, filter: "blur(2px)" };
