@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Agentation } from "agentation";
 import { DialRoot } from "dialkit";
 import "dialkit/styles.css";
 import "./globals.css";
@@ -36,7 +35,6 @@ export default function RootLayout({
     <html lang="en" data-theme="light">
       <body className={`${aspekta.variable} antialiased`}>
         {children}
-        {process.env.NODE_ENV === "development" && <Agentation />}
         {process.env.NODE_ENV === "development" && <DialRoot position="top-right" defaultOpen={false} />}
       </body>
     </html>
