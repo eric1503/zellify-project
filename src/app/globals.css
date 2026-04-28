@@ -9,6 +9,11 @@
    Colors — Light mode (default)
    -------------------------------------------------------------------------- */
 :root {
+  /* Easing — Emil Kowalski design engineering curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+
   /* Status */
   --status-neutral-bg: rgba(151, 151, 155, 0.1);
   --status-neutral-border: rgba(151, 151, 155, 0.15);
@@ -120,10 +125,10 @@
   --input-field-primary-foreground-border: #f1f1f4;
   --input-field-primary-border-focus: #f3533f;
   --input-field-primary-border-focus-outset: rgba(242, 115, 99, 0.2);
-  --input-field-secondary-bg: #f1eeee;
-  --input-field-secondary-bg-hover: #ece9e9;
-  --input-field-secondary-border: #ede9e9;
-  --input-field-secondary-border-hover: #e8e3e3;
+  --input-field-secondary-bg: #f6f6f8;
+  --input-field-secondary-bg-hover: #f1f1f4;
+  --input-field-secondary-border: #eeeef2;
+  --input-field-secondary-border-hover: #e5e5eb;
 
   /* Menu */
   --menu-bg: #ffffff;
@@ -750,6 +755,15 @@
 /* --------------------------------------------------------------------------
    Base styles
    -------------------------------------------------------------------------- */
+:root {
+  /* Aspekta stylistic sets — consumed by Tailwind preflight via
+     --default-font-feature-settings:
+       ss02 — Alt l    ss05 — Alt y    ss06 — Alt G
+       ss09 — Alt 3,6,9  ss10 — Alt 1,4
+       ss11 — Alt @    ss12 — Alt currency */
+  --default-font-feature-settings: "ss02", "ss05", "ss06", "ss09", "ss10", "ss11", "ss12";
+}
+
 body {
   background: var(--page-background);
   color: var(--text-foreground);
@@ -813,24 +827,82 @@ body {
 }
 
 .version-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--icon-container-border) transparent;
+  scrollbar-width: none;
 }
 .version-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Funnel reference picker — themed thin scrollbar so dark mode doesn't
+   show the default light-grey OS scrollbar. */
+.funnel-tree-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--toggle-bg-secondary) transparent;
+}
+.funnel-tree-scroll::-webkit-scrollbar {
   width: 6px;
 }
-.version-scroll::-webkit-scrollbar-track {
+.funnel-tree-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
-.version-scroll::-webkit-scrollbar-thumb {
-  background: var(--icon-container-border);
+.funnel-tree-scroll::-webkit-scrollbar-thumb {
+  background: var(--toggle-bg-secondary);
   border-radius: 3px;
 }
-[data-theme="dark"] .version-scroll {
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+.funnel-tree-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--icon-misc-foreground);
 }
-[data-theme="dark"] .version-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+
+/* --------------------------------------------------------------------------
+   Theme wipe — right-to-left curtain with a soft feathered edge. A mask-
+   image gradient (2× viewport wide) slides leftward; the transparent→black
+   transition band in the gradient becomes the soft curtain edge as it
+   sweeps across. Band is ~6% of mask ≈ 12% of viewport — a blurry-looking
+   fringe instead of a razor line.
+   -------------------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 0;
+}
+::view-transition-new(root) {
+  z-index: 1;
+  /* Mask is 240% of viewport width so the feather band (48%–52% of the
+     gradient) fully exits both edges. At mask-position 0 the element sees
+     mask 0–41.7% (all transparent); at 100% it sees 58.3–100% (all solid
+     black). Without that overhang the feather would still overlap the
+     left edge at animation end and the pseudo's removal snapped. */
+  -webkit-mask: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 48%,
+      black 52%,
+      black 100%
+    )
+    0 0 / 240% 100% no-repeat;
+  mask: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 48%,
+      black 52%,
+      black 100%
+    )
+    0 0 / 240% 100% no-repeat;
+  animation: theme-wipe var(--theme-wipe-duration, 800ms)
+    var(--theme-wipe-ease, cubic-bezier(0.5, 0, 0.1, 1)) forwards;
+}
+@keyframes theme-wipe {
+  from {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  to {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -850,12 +922,17 @@ body {
   cursor: pointer;
   position: relative;
   box-sizing: border-box;
-  transition: background 0.15s ease;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
 }
 
 .fl-switch[data-state="checked"] {
   background: var(--builder-brand);
   border-color: var(--button-primary-border);
+}
+
+.fl-switch:active {
+  transform: scale(0.92);
 }
 
 .fl-switch-thumb {
@@ -866,7 +943,7 @@ body {
   background: #ffffff;
   border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease;
+  transition: transform 200ms var(--ease-out);
   transform: translateX(2px);
 }
 
@@ -879,46 +956,85 @@ body {
    -------------------------------------------------------------------------- */
 .fl-segment-group {
   all: unset;
-  display: grid;
+  display: flex;
   width: 100%;
   padding: 3px;
-  gap: 2px;
+  gap: 0px;
   background: var(--toggle-bg-primary);
-  border: 1px solid var(--toggle-border);
   border-radius: 10px;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* Sliding indicator pill */
+.fl-segment-indicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 8px;
+  background: var(--button-secondary-bg);
+  border: 1px solid var(--button-secondary-border);
+  box-shadow: 0px 1px 2px -1px rgba(36, 38, 40, 0.1), 0px 1px 1px 0px rgba(36, 38, 40, 0.04);
+  transition: left 280ms var(--ease-out), width 280ms var(--ease-out);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .fl-segment-btn {
   all: unset;
   display: flex;
+  flex: 1 1 0%;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 6px 4px;
-  border-radius: 8px;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 7px;
   cursor: pointer;
-  border: 1px solid transparent;
   box-sizing: border-box;
   color: var(--text-secondary-foreground);
+  position: relative;
+  z-index: 1;
+  transition: color 160ms var(--ease-out);
 }
 
 .fl-segment-btn[data-active="true"] {
-  background: var(--toggle-active-bg);
-  border-color: var(--toggle-active-border);
-  box-shadow: 0px 1px 2px -1px rgba(36, 38, 40, 0.1), 0px 1px 1px 0px rgba(36, 38, 40, 0.04);
-  color: var(--text-foreground);
+  color: var(--text-secondary-foreground);
 }
 
 .fl-segment-btn .fl-segment-icon {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  color: var(--icon-secondary-foreground);
+  color: var(--icon-muted-foreground);
 }
 
 .fl-segment-btn[data-active="true"] .fl-segment-icon {
-  color: var(--icon-foreground);
+  color: var(--icon-primary-foreground);
+}
+
+/* Icon-only variant — square buttons, no red active icon */
+.fl-segment-group[data-icon-only] {
+  padding: 1px;
+}
+
+.fl-segment-group[data-icon-only] .fl-segment-indicator {
+  top: 1px;
+  bottom: 1px;
+}
+
+.fl-segment-group[data-icon-only] .fl-segment-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.fl-segment-group[data-icon-only] .fl-segment-btn .fl-segment-icon {
+  color: var(--icon-muted-foreground);
+}
+
+.fl-segment-group[data-icon-only] .fl-segment-btn[data-active="true"] .fl-segment-icon {
+  color: var(--icon-secondary-foreground);
 }
 
 /* --------------------------------------------------------------------------
@@ -932,16 +1048,17 @@ body {
   padding-inline: 10px;
   width: 100%;
   overflow: hidden;
-  background: var(--input-field-primary-bg);
-  border: 1px solid var(--input-field-primary-border);
-  border-radius: 8px;
+  background: var(--input-field-secondary-bg);
+  border: 1px solid var(--input-field-secondary-border);
+  border-radius: 10px;
   cursor: text;
-  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
 }
 
 .input-field-wrapper[data-hovered] {
-  background: var(--input-field-primary-bg-hover);
-  border-color: var(--input-field-primary-border-hover);
+  background: var(--input-field-secondary-bg-hover);
+  border-color: var(--input-field-secondary-border-hover);
 }
 
 .input-field-wrapper[data-focused] {
@@ -950,13 +1067,13 @@ body {
 }
 
 .input-field-wrapper[data-filled]:not([data-focused]) {
-  background: var(--input-field-primary-bg);
-  border-color: var(--input-field-primary-border);
+  background: var(--input-field-secondary-bg);
+  border-color: var(--input-field-secondary-border);
 }
 
 .input-field-wrapper[data-filled][data-hovered]:not([data-focused]) {
-  background: var(--input-field-primary-bg-hover);
-  border-color: var(--input-field-primary-border-hover);
+  background: var(--input-field-secondary-bg-hover);
+  border-color: var(--input-field-secondary-border-hover);
 }
 
 /* --------------------------------------------------------------------------
@@ -973,6 +1090,19 @@ body {
   border: 2px solid var(--input-field-primary-border);
   cursor: pointer;
   box-sizing: border-box;
+  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fl-color-swatch:hover {
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.fl-color-swatch:active {
+  transform: scale(0.95);
 }
 
 /* --------------------------------------------------------------------------
@@ -1046,7 +1176,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 
 .slider-field-handle-dot {
@@ -1060,4 +1190,416 @@ body {
 .slider-field[data-dragging] .slider-field-handle {
   transform: translateX(-50%) scale(1.15);
   box-shadow: 0 7.5px 12.5px rgba(14, 18, 27, 0.1), 0 2.5px 5px rgba(14, 18, 27, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   Emil Design Engineering — Global interaction polish
+   -------------------------------------------------------------------------- */
+
+/* All pressable elements in the property panel get active feedback */
+.property-panel button:not(.fl-switch):not(.fl-segment-btn) {
+  transition: transform 120ms var(--ease-out), opacity 120ms var(--ease-out),
+    background 160ms var(--ease-out), border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+
+.property-panel button:not(.fl-switch):not(.fl-segment-btn):active {
+  transform: scale(0.97);
+}
+
+/* Gate hover-only effects for pointer devices */
+@media (hover: hover) and (pointer: fine) {
+  .fl-segment-btn:not([data-active="true"]):hover {
+    background: var(--toggle-bg-secondary);
+  }
+}
+
+/* Popover enter — origin-aware scale from trigger */
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-popover-in {
+  animation: popover-in 150ms var(--ease-out);
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip — 0.5s delay, Emil-style enter (ease-out, scale from 0.97)
+   -------------------------------------------------------------------------- */
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-bubble {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.97);
+  transform-origin: top center;
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--tooltip-bg);
+  border: 1px solid var(--tooltip-border);
+  box-shadow: 0px 4px 24px 0px rgba(0, 0, 0, 0.05);
+  transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out);
+  z-index: 50;
+}
+
+.tooltip-wrap:hover .tooltip-bubble {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+  transition-delay: 500ms;
+}
+
+/* Once one tooltip is open, skip delay on siblings (Emil: instant subsequent) */
+.tooltip-wrap:hover ~ .tooltip-wrap .tooltip-bubble {
+  transition-delay: 0ms;
+}
+
+/* ── Radix Tooltip animations (Emil-style) ──────────────────────── */
+@keyframes tooltip-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltip-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.radix-tooltip[data-state="delayed-open"],
+.radix-tooltip[data-state="instant-open"] {
+  animation: tooltip-enter 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radix-tooltip[data-state="closed"] {
+  animation: tooltip-exit 100ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* prefers-reduced-motion: keep color/opacity, remove transforms */
+@media (prefers-reduced-motion: reduce) {
+  .fl-switch,
+  .fl-switch-thumb,
+  .fl-segment-btn,
+  .fl-color-swatch,
+  .slider-field-handle,
+  .input-field-wrapper,
+  .property-panel button {
+    transition-duration: 0ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Phone Settings Panel — floating canvas overlay (rev 2)
+   -------------------------------------------------------------------------- */
+.phone-panel {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  padding: 12px;
+  gap: 10px;
+  background: var(--background-modal-bg-modal);
+  border: 1px solid var(--background-modal-border-modal);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.18), 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+  user-select: none;
+}
+
+.phone-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 4px;
+}
+
+.phone-panel-title {
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-foreground);
+}
+
+.phone-panel-icon-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--icon-muted-foreground);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.phone-panel-icon-btn:hover {
+  background: var(--button-tertiary-bg-hover);
+  color: var(--icon-secondary-foreground);
+}
+
+.phone-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phone-panel-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  border: 1px solid var(--button-tertiary-border);
+  color: var(--text-secondary-foreground);
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.phone-panel-btn[data-square] {
+  width: 30px;
+  padding: 0;
+}
+
+.phone-panel-btn:hover {
+  background: var(--button-tertiary-bg-hover);
+  border-color: var(--button-tertiary-border-hover);
+}
+
+.phone-panel-btn:active {
+  transform: scale(0.97);
+}
+
+.phone-panel-version {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1 1 0%;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  border: 1px solid var(--button-tertiary-border);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.phone-panel-version:hover {
+  background: var(--button-tertiary-bg-hover);
+  border-color: var(--button-tertiary-border-hover);
+}
+
+.phone-panel-version-label {
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-foreground);
+}
+
+.phone-panel-version-chev {
+  color: var(--icon-muted-foreground);
+}
+
+.phone-panel-divider {
+  height: 1px;
+  background: var(--divider-primary);
+  margin: 2px 0 4px;
+}
+
+.phone-panel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phone-scrub-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  cursor: ew-resize;
+  touch-action: none;
+  outline: none;
+  overflow: hidden;
+  transition: background 160ms var(--ease-out);
+}
+
+.phone-scrub-row:hover {
+  background: var(--button-tertiary-bg-hover);
+}
+
+.phone-scrub-row:focus-visible {
+  box-shadow: 0 0 0 2px var(--input-field-primary-border-focus-outset);
+}
+
+.phone-scrub-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--toggle-active-bg);
+  border-right: 1px solid var(--toggle-active-border);
+  pointer-events: none;
+  transition: background 160ms var(--ease-out);
+}
+
+.phone-scrub-row[data-dragging] .phone-scrub-fill,
+.phone-scrub-row:active .phone-scrub-fill {
+  background: var(--button-tertiary-border-hover);
+}
+
+.phone-scrub-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-foreground);
+  pointer-events: none;
+}
+
+.phone-scrub-value {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   iOS-style status bar — drawn over phone screen
+   -------------------------------------------------------------------------- */
+.ios-status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  pointer-events: none;
+  color: #000;
+  background: #fff;
+}
+
+.ios-status-time {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    Helvetica, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-feature-settings: "ss01";
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ios-status-island {
+  background: #000;
+  border-radius: 999px;
+}
+
+.ios-status-right {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ── Building Funnel Modal ── */
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Transitions.dev — Text states swap (driven by JS, three-phase sequence)
+   -------------------------------------------------------------------------- */
+:root {
+  --text-swap-dur: 360ms;
+  --text-swap-translate-y: 10px;
+  --text-swap-blur: 4px;
+  --text-swap-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer utilities {
+  .t-text-swap {
+    display: inline-block;
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+    transition:
+      transform var(--text-swap-dur) var(--text-swap-ease),
+      filter var(--text-swap-dur) var(--text-swap-ease),
+      opacity var(--text-swap-dur) var(--text-swap-ease);
+    will-change: transform, filter, opacity;
+  }
+  .t-text-swap.is-exit {
+    transform: translateY(calc(var(--text-swap-translate-y) * -1));
+    filter: blur(var(--text-swap-blur));
+    opacity: 0;
+  }
+  .t-text-swap.is-enter-start {
+    transform: translateY(var(--text-swap-translate-y));
+    filter: blur(var(--text-swap-blur));
+    opacity: 0;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-text-swap {
+    transition: none !important;
+  }
 }

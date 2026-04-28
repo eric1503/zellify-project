@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
 /* ------------------------------------------------------------------ */
 /*  Icon helper (mask-based, uses /icons/18px/)                        */
@@ -137,6 +138,7 @@ const initialSections: DaySection[] = [
     items: [
       { id: "v6", type: "version", time: "Mar 2, 2026 - 1:17PM", user: eric },
       { id: "v7", type: "version", time: "Mar 2, 2026 - 9:42AM", user: maceo },
+      { id: "v6b", type: "version", time: "Mar 2, 2026 - 7:15AM", user: eric },
     ],
   },
   {
@@ -144,12 +146,14 @@ const initialSections: DaySection[] = [
     items: [
       { id: "v8", type: "version", time: "Mar 1, 2026 - 11:29 AM", user: margarett },
       { id: "v9", type: "version", time: "Mar 1, 2026 - 4:29 AM", user: eric },
+      { id: "v9b", type: "version", time: "Mar 1, 2026 - 1:10 AM", user: jaylah },
     ],
   },
   {
     label: "FEB 28, 2026",
     items: [
       { id: "v10", type: "version", time: "Feb 28, 2026 - 11:29 AM", user: brenda },
+      { id: "v10b", type: "version", time: "Feb 28, 2026 - 8:44 AM", user: eric },
       { id: "v11", type: "version", time: "Feb 28, 2026 - 4:29 AM", user: nils },
     ],
   },
@@ -160,6 +164,7 @@ const olderSections: DaySection[] = [
     label: "FEB 27, 2026",
     items: [
       { id: "v12", type: "version", time: "Feb 27, 2026 - 3:10 PM", user: jaylah },
+      { id: "v12b", type: "version", time: "Feb 27, 2026 - 12:30 PM", user: eric },
       { id: "v13", type: "version", time: "Feb 27, 2026 - 10:05 AM", user: tessie },
     ],
   },
@@ -167,7 +172,16 @@ const olderSections: DaySection[] = [
     label: "FEB 26, 2026",
     items: [
       { id: "v14", type: "version", time: "Feb 26, 2026 - 6:22 PM", user: maceo },
+      { id: "v14b", type: "version", time: "Feb 26, 2026 - 2:48 PM", user: eric },
       { id: "v15", type: "version", time: "Feb 26, 2026 - 9:15 AM", user: albin },
+    ],
+  },
+  {
+    label: "FEB 25, 2026",
+    items: [
+      { id: "v16", type: "version", time: "Feb 25, 2026 - 5:30 PM", user: eric },
+      { id: "v17", type: "version", time: "Feb 25, 2026 - 11:20 AM", user: margarett },
+      { id: "v18", type: "version", time: "Feb 25, 2026 - 8:05 AM", user: nils },
     ],
   },
 ];
@@ -180,74 +194,89 @@ function FilterDropdown({
   onClose,
   filter,
   setFilter,
+  anchorRef,
 }: {
   open: boolean;
   onClose: () => void;
   filter: "all" | "mine";
   setFilter: (v: "all" | "mine") => void;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      if (
+        ref.current && !ref.current.contains(e.target as Node) &&
+        anchorRef.current && !anchorRef.current.contains(e.target as Node)
+      ) onClose();
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open, onClose]);
-
-  if (!open) return null;
+  }, [open, onClose, anchorRef]);
 
   return (
-    <div
-      ref={ref}
-      className="absolute right-4 top-[48px] z-10 flex flex-col gap-[2px] overflow-clip rounded-[var(--radius-xl)] border p-1 shadow-menu-dropdown"
-      style={{
-        width: 152,
-        background: "var(--menu-bg)",
-        borderColor: "var(--menu-border)",
-      }}
-    >
-      {[
-        { value: "all" as const, label: "All versions" },
-        { value: "mine" as const, label: "My versions only" },
-      ].map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => {
-            setFilter(opt.value);
-            onClose();
-          }}
-          className="flex h-[30px] items-center gap-2 rounded-[var(--radius-xl)] px-2 transition-colors"
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={ref}
+          className="absolute right-3 z-10 flex flex-col gap-[2px] overflow-clip rounded-[10px] border p-1"
           style={{
-            background: filter === opt.value ? "var(--menu-list-hover)" : "transparent",
-            borderColor: filter === opt.value ? "var(--menu-list-border-hover)" : "transparent",
+            top: anchorRef.current
+              ? anchorRef.current.offsetTop + anchorRef.current.offsetHeight + 4
+              : 42,
+            width: 152,
+            background: "var(--menu-bg)",
+            borderColor: "var(--menu-border)",
+            boxShadow: "0px 0px 0px 1px rgba(36,38,40,0.06), 0px 8px 16px rgba(36,38,40,0.09)",
+            transformOrigin: "top right",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "var(--menu-list-hover)";
-          }}
-          onMouseLeave={(e) => {
-            if (filter !== opt.value) e.currentTarget.style.background = "transparent";
-          }}
+          initial={{ opacity: 0, scale: 0.95, y: -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -4 }}
+          transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
         >
-          <span
-            className="label-text-2xs flex-1 text-left"
-            style={{
-              color:
-                filter === opt.value
-                  ? "var(--text-foreground)"
-                  : "var(--text-secondary-foreground)",
-            }}
-          >
-            {opt.label}
-          </span>
-          {filter === opt.value && (
-            <Icon name="check" size={12} className="text-[var(--icon-primary-foreground)]" />
-          )}
-        </button>
-      ))}
-    </div>
+          {[
+            { value: "all" as const, label: "All versions" },
+            { value: "mine" as const, label: "My versions only" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => {
+                setFilter(opt.value);
+                onClose();
+              }}
+              className="flex h-[30px] items-center gap-2 rounded-[8px] px-2 transition-colors"
+              style={{
+                background: filter === opt.value ? "var(--menu-list-hover)" : "transparent",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--menu-list-hover)";
+              }}
+              onMouseLeave={(e) => {
+                if (filter !== opt.value) e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <span
+                className="label-text-2xs flex-1 text-left"
+                style={{
+                  color:
+                    filter === opt.value
+                      ? "var(--text-foreground)"
+                      : "var(--text-secondary-foreground)",
+                }}
+              >
+                {opt.label}
+              </span>
+              {filter === opt.value && (
+                <Icon name="check" size={12} className="text-[var(--icon-primary-foreground)]" />
+              )}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -548,9 +577,10 @@ function VersionRow({
           top: 0,
           bottom: 0,
           left: nested ? -4 : 4,
-          right: 0,
+          right: 4,
           borderRadius: 10,
-          background: "var(--background-quaternary-bg-quaternary-hover)",
+          background: "var(--background-primary-bg-primary)",
+          border: "1px solid rgba(0,0,0,0.05)",
           opacity: !isCurrent && hovered ? 1 : 0,
           transition: "opacity 150ms ease",
           pointerEvents: "none",
@@ -694,9 +724,10 @@ function AutosaveGroupRow({
         <div
           className="absolute"
           style={{
-            inset: "0 0 0 0",
+            inset: "0 4px 0 0",
             borderRadius: 10,
-            background: "var(--background-quaternary-bg-quaternary-hover)",
+            background: "var(--background-primary-bg-primary)",
+            border: "1px solid rgba(0,0,0,0.05)",
             opacity: hovered ? 1 : 0,
             transition: "opacity 150ms ease",
             pointerEvents: "none",
@@ -794,7 +825,7 @@ function DateSectionBlock({ section }: { section: DaySection }) {
   return (
     <div className="flex flex-col">
       {/* Section header */}
-      <div style={{ padding: "16px 16px 4px" }}>
+      <div style={{ padding: "12px 16px 4px" }}>
         <span
           className="body-text-3xs uppercase"
           style={{
@@ -830,6 +861,119 @@ function DateSectionBlock({ section }: { section: DaySection }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Blur transition — locked in (Emil design-eng principles)           */
+/*  ease-out [0.23,1,0.32,1], stagger 25ms top→bottom, 120ms each     */
+/* ------------------------------------------------------------------ */
+const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
+const HIDDEN = { opacity: 0, filter: "blur(3px)", y: 4 };
+const VISIBLE = { opacity: 1, filter: "blur(0px)", y: 0 };
+const EXIT = { opacity: 0, filter: "blur(2px)" };
+const DUR = 0.12;
+
+function TransitionedList({
+  filter,
+  filteredInitial,
+  filteredOlder,
+  showOlder,
+  onShowOlder,
+}: {
+  filter: string;
+  filteredInitial: DaySection[];
+  filteredOlder: DaySection[];
+  showOlder: boolean;
+  onShowOlder: () => void;
+}) {
+  return (
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={filter}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.025 } },
+            exit: { ...EXIT, transition: { duration: 0.08, ease: EASE } },
+          }}
+        >
+          {filteredInitial.map((section) => (
+            <motion.div
+              key={section.label}
+              variants={{ hidden: HIDDEN, visible: VISIBLE, exit: EXIT }}
+              transition={{ duration: DUR, ease: EASE }}
+            >
+              <DateSectionBlock section={section} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOlder &&
+          filteredOlder.map((section, i) => (
+            <motion.div
+              key={section.label}
+              initial={HIDDEN}
+              animate={VISIBLE}
+              transition={{ duration: DUR, ease: EASE, delay: i * 0.04 }}
+            >
+              <DateSectionBlock section={section} />
+            </motion.div>
+          ))}
+      </AnimatePresence>
+
+      {/* Show older / end-of-list */}
+      <div style={{ padding: "8px 16px 16px 12px" }}>
+        <AnimatePresence mode="wait">
+          {showOlder ? (
+            <motion.div
+              key="end"
+              className="flex items-center justify-center"
+              style={{ padding: "8px 0" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: EASE, delay: filteredOlder.length * 0.04 }}
+            >
+              <span className="label-text-2xs" style={{ color: "var(--text-muted-foreground)" }}>
+                No more versions
+              </span>
+            </motion.div>
+          ) : (
+            <motion.button
+              key="btn"
+              onClick={onShowOlder}
+              className="label-text-xs flex items-center justify-center gap-1.5"
+              style={{
+                width: "100%",
+                padding: "7px 12px",
+                borderRadius: 8,
+                border: "1px solid var(--button-tertiary-border)",
+                background: "var(--button-tertiary-bg)",
+                color: "var(--text-secondary-foreground)",
+              }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.15, ease: EASE }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--button-tertiary-bg-hover)";
+                e.currentTarget.style.borderColor = "var(--button-tertiary-border-hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "var(--button-tertiary-bg)";
+                e.currentTarget.style.borderColor = "var(--button-tertiary-border)";
+              }}
+            >
+              Show older version
+              <Icon name="chevron-down" size={11} />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 export default function VersionHistoryPage() {
@@ -837,17 +981,71 @@ export default function VersionHistoryPage() {
   const [filter, setFilter] = useState<"all" | "mine">("all");
   const [showOlder, setShowOlder] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const filterBtnRef = useRef<HTMLButtonElement>(null);
+  const MY_EMAIL = "ericangelo1503@gmail.com";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [thumbVisible, setThumbVisible] = useState(false);
+  const [thumbTop, setThumbTop] = useState(0);
+  const [thumbHeight, setThumbHeight] = useState(0);
+  const fadeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showThumb = () => {
+    if (fadeTimeout.current) clearTimeout(fadeTimeout.current);
+    setThumbVisible(true);
+  };
+  const hideThumb = () => {
+    if (fadeTimeout.current) clearTimeout(fadeTimeout.current);
+    fadeTimeout.current = setTimeout(() => setThumbVisible(false), 600);
+  };
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const HEADER_H = 45;
+  const updateScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollUp(el.scrollTop > 0);
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+  };
+  const updateThumb = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const trackH = el.clientHeight - HEADER_H;
+    const ratio = el.clientHeight / el.scrollHeight;
+    if (ratio >= 1) { setThumbVisible(false); return; }
+    const thumb = Math.max(ratio * trackH, 28);
+    setThumbHeight(thumb);
+    setThumbTop(HEADER_H + (el.scrollTop / (el.scrollHeight - el.clientHeight)) * (trackH - thumb));
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  const allSections = showOlder
-    ? [...initialSections, ...olderSections]
-    : initialSections;
+  useEffect(() => {
+    requestAnimationFrame(updateScroll);
+  });
+
+  const filterSections = (sections: DaySection[]): DaySection[] => {
+    if (filter === "all") return sections;
+    return sections
+      .map((section) => ({
+        ...section,
+        items: section.items.flatMap((item) => {
+          if (item.type === "autosave") {
+            const mine = item.children.filter((c) => c.user.email === MY_EMAIL);
+            return mine.length > 0 ? mine : [];
+          }
+          return item.user.email === MY_EMAIL ? [item] : [];
+        }),
+      }))
+      .filter((s) => s.items.length > 0);
+  };
+
+  const filteredInitial = filterSections(initialSections);
+  const filteredOlder = filterSections(olderSections);
 
   return (
-    <div className="relative flex h-screen items-start justify-center overflow-hidden bg-[var(--page-background)]">
+    <div className="relative flex h-screen items-start justify-center overflow-hidden bg-[var(--page-background)]" style={{ paddingTop: 80 }}>
       {/* Dark mode toggle — pill switch */}
       <div
         className="absolute left-4 top-4 z-50 flex items-center gap-2.5"
@@ -878,21 +1076,79 @@ export default function VersionHistoryPage() {
         </button>
         <Icon name="moon" size={14} className="text-[var(--icon-secondary-foreground)]" style={{ opacity: darkMode ? 1 : 0.4, transition: "opacity 200ms" }} />
       </div>
-      <div
-        className="relative flex flex-col"
-        style={{
-          width: 289,
-          maxHeight: "100vh",
-          background: "var(--page-background)",
-          borderLeft: "1px solid var(--divider-primary)",
-        }}
-      >
-        {/* Header */}
+
+
+      <div className="relative" style={{ width: 289, maxHeight: 640 }}>
+        {/* Top gradient overlay */}
         <div
-          className="flex shrink-0 items-center justify-between"
           style={{
-            padding: "12px 12px 12px 16px",
+            position: "absolute",
+            top: HEADER_H,
+            left: 1,
+            right: 1,
+            height: 24,
+            background: "linear-gradient(to bottom, var(--background-bg-panel), transparent)",
+            opacity: canScrollUp ? 1 : 0,
+            transition: "opacity 200ms ease",
+            zIndex: 4,
+            pointerEvents: "none",
+            borderRadius: "0",
+          }}
+        />
+        {/* Bottom gradient overlay */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 1,
+            left: 1,
+            right: 1,
+            height: 24,
+            background: "linear-gradient(to top, var(--background-bg-panel), transparent)",
+            opacity: canScrollDown ? 1 : 0,
+            transition: "opacity 200ms ease",
+            zIndex: 4,
+            pointerEvents: "none",
+            borderRadius: "0 0 12px 12px",
+          }}
+        />
+      <div
+        ref={scrollRef}
+        className="version-scroll relative rounded-[12px]"
+        style={{
+          maxHeight: 640,
+          overflowY: "auto",
+          background: "var(--background-bg-panel)",
+          border: "1px solid var(--background-secondary-border-secondary)",
+          boxShadow: "0px 1px 2px -1px rgba(36,38,40,0.1), 0px 1px 1px 0px rgba(36,38,40,0.04), 0px 1px 0px 0px rgba(0,0,0,0.04), 0px 4px 12px 0px rgba(0,0,0,0.06)",
+        }}
+        onMouseEnter={() => { updateThumb(); updateScroll(); showThumb(); }}
+        onMouseLeave={hideThumb}
+        onScroll={() => { updateThumb(); updateScroll(); showThumb(); hideThumb(); }}
+      >
+        {/* Custom scrollbar thumb — zero-height wrapper so it doesn't affect layout */}
+        <div style={{ position: "sticky", top: 0, height: 0, zIndex: 10, pointerEvents: "none" }}>
+          <div
+            style={{
+              position: "absolute",
+              top: thumbTop,
+              right: 2,
+              width: 5,
+              height: thumbHeight,
+              borderRadius: 3,
+              background: darkMode ? "rgba(255,255,255,0.15)" : "var(--icon-container-border)",
+              opacity: thumbVisible ? 1 : 0,
+              transition: "opacity 250ms ease, top 60ms linear",
+            }}
+          />
+        </div>
+
+        {/* Sticky header */}
+        <div
+          className="sticky top-0 z-[5] flex items-center justify-between"
+          style={{
+            padding: "8px 8px 8px 16px",
             borderBottom: "1px solid var(--divider-primary)",
+            background: "var(--background-bg-panel)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -912,6 +1168,7 @@ export default function VersionHistoryPage() {
             </span>
           </div>
           <button
+            ref={filterBtnRef}
             onClick={() => setFilterOpen(!filterOpen)}
             className="flex items-center justify-center rounded-[var(--radius-lg)] transition-all"
             style={{
@@ -919,11 +1176,11 @@ export default function VersionHistoryPage() {
               height: 28,
               color: filterOpen ? "var(--icon-foreground)" : "var(--icon-muted-foreground)",
               background: filterOpen
-                ? "var(--background-quaternary-bg-quaternary-hover)"
+                ? "var(--background-primary-bg-primary)"
                 : "transparent",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--background-quaternary-bg-quaternary-hover)";
+              e.currentTarget.style.background = "var(--background-primary-bg-primary)";
               e.currentTarget.style.color = "var(--icon-foreground)";
             }}
             onMouseLeave={(e) => {
@@ -943,52 +1200,19 @@ export default function VersionHistoryPage() {
           onClose={() => setFilterOpen(false)}
           filter={filter}
           setFilter={setFilter}
+          anchorRef={filterBtnRef}
         />
 
-        {/* Scrollable content */}
-        <div className="version-scroll flex flex-1 flex-col overflow-y-auto">
-          {allSections.map((section) => (
-            <DateSectionBlock key={section.label} section={section} />
-          ))}
+        {/* List content */}
+        <TransitionedList
+          filter={filter}
+          filteredInitial={filteredInitial}
+          filteredOlder={filteredOlder}
+          showOlder={showOlder}
+          onShowOlder={() => setShowOlder(true)}
+        />
 
-          {/* Show older versions */}
-          <div style={{ padding: "8px 12px 16px" }}>
-            {showOlder ? (
-              <div className="flex items-center justify-center" style={{ padding: "8px 0" }}>
-                <span
-                  className="label-text-2xs"
-                  style={{ color: "var(--text-muted-foreground)" }}
-                >
-                  No more versions
-                </span>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowOlder(true)}
-                className="label-text-xs flex items-center justify-center gap-1.5 transition-colors"
-                style={{
-                  width: "100%",
-                  padding: "7px 12px",
-                  borderRadius: 8,
-                  border: "1px solid var(--button-tertiary-border)",
-                  background: "var(--button-tertiary-bg)",
-                  color: "var(--text-secondary-foreground)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--button-tertiary-bg-hover)";
-                  e.currentTarget.style.borderColor = "var(--button-tertiary-border-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--button-tertiary-bg)";
-                  e.currentTarget.style.borderColor = "var(--button-tertiary-border)";
-                }}
-              >
-                Show older version
-                <Icon name="chevron-down" size={11} />
-              </button>
-            )}
-          </div>
-        </div>
+      </div>
       </div>
     </div>
   );
