@@ -755,6 +755,15 @@
 /* --------------------------------------------------------------------------
    Base styles
    -------------------------------------------------------------------------- */
+:root {
+  /* Aspekta stylistic sets — consumed by Tailwind preflight via
+     --default-font-feature-settings:
+       ss02 — Alt l    ss05 — Alt y    ss06 — Alt G
+       ss09 — Alt 3,6,9  ss10 — Alt 1,4
+       ss11 — Alt @    ss12 — Alt currency */
+  --default-font-feature-settings: "ss02", "ss05", "ss06", "ss09", "ss10", "ss11", "ss12";
+}
+
 body {
   background: var(--page-background);
   color: var(--text-foreground);
@@ -1303,6 +1312,240 @@ body {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Phone Settings Panel — floating canvas overlay (rev 2)
+   -------------------------------------------------------------------------- */
+.phone-panel {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  padding: 12px;
+  gap: 10px;
+  background: var(--background-modal-bg-modal);
+  border: 1px solid var(--background-modal-border-modal);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.18), 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+  user-select: none;
+}
+
+.phone-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 4px;
+}
+
+.phone-panel-title {
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-foreground);
+}
+
+.phone-panel-icon-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--icon-muted-foreground);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.phone-panel-icon-btn:hover {
+  background: var(--button-tertiary-bg-hover);
+  color: var(--icon-secondary-foreground);
+}
+
+.phone-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phone-panel-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  border: 1px solid var(--button-tertiary-border);
+  color: var(--text-secondary-foreground);
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.phone-panel-btn[data-square] {
+  width: 30px;
+  padding: 0;
+}
+
+.phone-panel-btn:hover {
+  background: var(--button-tertiary-bg-hover);
+  border-color: var(--button-tertiary-border-hover);
+}
+
+.phone-panel-btn:active {
+  transform: scale(0.97);
+}
+
+.phone-panel-version {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1 1 0%;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  border: 1px solid var(--button-tertiary-border);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.phone-panel-version:hover {
+  background: var(--button-tertiary-bg-hover);
+  border-color: var(--button-tertiary-border-hover);
+}
+
+.phone-panel-version-label {
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-foreground);
+}
+
+.phone-panel-version-chev {
+  color: var(--icon-muted-foreground);
+}
+
+.phone-panel-divider {
+  height: 1px;
+  background: var(--divider-primary);
+  margin: 2px 0 4px;
+}
+
+.phone-panel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phone-scrub-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--button-tertiary-bg);
+  cursor: ew-resize;
+  touch-action: none;
+  outline: none;
+  overflow: hidden;
+  transition: background 160ms var(--ease-out);
+}
+
+.phone-scrub-row:hover {
+  background: var(--button-tertiary-bg-hover);
+}
+
+.phone-scrub-row:focus-visible {
+  box-shadow: 0 0 0 2px var(--input-field-primary-border-focus-outset);
+}
+
+.phone-scrub-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--toggle-active-bg);
+  border-right: 1px solid var(--toggle-active-border);
+  pointer-events: none;
+  transition: background 160ms var(--ease-out);
+}
+
+.phone-scrub-row[data-dragging] .phone-scrub-fill,
+.phone-scrub-row:active .phone-scrub-fill {
+  background: var(--button-tertiary-border-hover);
+}
+
+.phone-scrub-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-foreground);
+  pointer-events: none;
+}
+
+.phone-scrub-value {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  font-family: var(--font-aspekta-loaded), "Aspekta", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   iOS-style status bar — drawn over phone screen
+   -------------------------------------------------------------------------- */
+.ios-status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  pointer-events: none;
+  color: #000;
+  background: #fff;
+}
+
+.ios-status-time {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    Helvetica, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-feature-settings: "ss01";
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ios-status-island {
+  background: #000;
+  border-radius: 999px;
+}
+
+.ios-status-right {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 /* ── Building Funnel Modal ── */
 @keyframes overlayFadeIn {
   from { opacity: 0; }
@@ -1317,5 +1560,46 @@ body {
   to {
     opacity: 1;
     transform: translate(-50%, -50%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Transitions.dev — Text states swap (driven by JS, three-phase sequence)
+   -------------------------------------------------------------------------- */
+:root {
+  --text-swap-dur: 360ms;
+  --text-swap-translate-y: 10px;
+  --text-swap-blur: 4px;
+  --text-swap-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer utilities {
+  .t-text-swap {
+    display: inline-block;
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+    transition:
+      transform var(--text-swap-dur) var(--text-swap-ease),
+      filter var(--text-swap-dur) var(--text-swap-ease),
+      opacity var(--text-swap-dur) var(--text-swap-ease);
+    will-change: transform, filter, opacity;
+  }
+  .t-text-swap.is-exit {
+    transform: translateY(calc(var(--text-swap-translate-y) * -1));
+    filter: blur(var(--text-swap-blur));
+    opacity: 0;
+  }
+  .t-text-swap.is-enter-start {
+    transform: translateY(var(--text-swap-translate-y));
+    filter: blur(var(--text-swap-blur));
+    opacity: 0;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-text-swap {
+    transition: none !important;
   }
 }

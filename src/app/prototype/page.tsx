@@ -6,6 +6,8 @@ import { ToggleField } from "@/components/ui/ToggleField";
 import { InputField } from "@/components/ui/InputField";
 import { SectionWrapper } from "@/components/ui/SectionWrapper";
 import { Tooltip, TooltipProvider } from "@/components/ui/Tooltip";
+import { PhoneSettingsPanel, type PhoneSettings } from "@/components/PhoneSettingsPanel";
+import { PaywallScreen } from "@/components/PaywallScreen";
 
 /* ------------------------------------------------------------------ */
 /*  Icon helper                                                        */
@@ -437,7 +439,18 @@ const DOT_PATTERN = {
   opacity: 0.5,
 };
 
-function Canvas() {
+/* ------------------------------------------------------------------ */
+/*  Canvas — receives phone settings                                   */
+/* ------------------------------------------------------------------ */
+function Canvas({ phone }: { phone: PhoneSettings }) {
+  const padding = phone.bezelPadding;
+  const screenW = phone.width * phone.scale;
+  const screenH = phone.height * phone.scale;
+  const padPx = padding * phone.scale;
+  const outerW = screenW + padPx * 2;
+  const outerH = screenH + padPx * 2;
+  const outerRadius = phone.bezelRadius * phone.scale;
+  const innerRadius = Math.max(0, (phone.bezelRadius - padding) * phone.scale);
 
   return (
     <div className="min-w-0 flex flex-col gap-3 overflow-hidden" style={{ flex: "1 1 0%", order: 0, background: "var(--page-background)", padding: "12px 0 12px 12px" }}>
@@ -470,41 +483,35 @@ function Canvas() {
         <div className="flex-1 flex flex-col items-center justify-center gap-4 relative z-[1]">
           <div
             className="relative shrink-0"
-            style={{ width: 278, height: 585 }}
+            style={{ width: outerW, height: outerH }}
           >
             {/* Phone frame — dark border with inner radius */}
             <div
-              className="absolute inset-0 rounded-[31px] pointer-events-none"
+              className="absolute inset-0 pointer-events-none"
               style={{
+                borderRadius: outerRadius,
                 border: "2.5px solid #a0a0a7",
                 background: "#000",
-                boxShadow: "inset 0 0 0.2px 2.6px #3f3f3f, 0 11.366px 17.049px -3.41px rgba(0,0,0,0.10), 0 4.546px 6.819px -2.273px rgba(0,0,0,0.05)",
+                boxShadow:
+                  "inset 0 0 0.2px 2.6px #3f3f3f, 0 11.366px 17.049px -3.41px rgba(0,0,0,0.10), 0 4.546px 6.819px -2.273px rgba(0,0,0,0.05)",
               }}
             />
 
-            {/* Screen area */}
+            {/* Screen area — live React paywall app */}
             <div
               className="absolute overflow-hidden"
               style={{
-                top: "1.9%",
-                left: "3.5%",
-                right: "3.3%",
-                bottom: "1.7%",
-                borderRadius: 22,
+                top: padPx,
+                left: padPx,
+                width: screenW,
+                height: screenH,
+                borderRadius: innerRadius,
                 background: "#ffffff",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              <img
-                src="/phone-screen.webp"
-                alt="Paywall screen"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "top",
-                  display: "block",
-                }}
-              />
+              <PaywallScreen />
             </div>
           </div>
 
@@ -789,21 +796,56 @@ function RightSidebar() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Canvas wrapper — hosts floating Phone settings panel               */
+/* ------------------------------------------------------------------ */
+function CanvasWithPhonePanel({
+  phone,
+  setPhone,
+}: {
+  phone: PhoneSettings;
+  setPhone: (next: Partial<PhoneSettings>) => void;
+}) {
+  return (
+    <div className="relative flex-1 min-w-0 flex">
+      <Canvas phone={phone} />
+      {/* Floating Phone settings panel — top-right of canvas */}
+      <div
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 5,
+        }}
+      >
+        <PhoneSettingsPanel settings={phone} onChange={setPhone} />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Prototype Page                                                     */
 /* ------------------------------------------------------------------ */
 export default function PrototypePage() {
+  const [phone, setPhoneState] = useState<PhoneSettings>({
+    scale: 0.75,
+    width: 390,
+    height: 820,
+    bezelRadius: 48,
+    bezelPadding: 9,
+  });
+
+  const setPhone = (next: Partial<PhoneSettings>) =>
+    setPhoneState((prev) => ({ ...prev, ...next }));
+
   return (
     <TooltipProvider delayDuration={400} skipDelayDuration={0}>
     <div
       className="h-screen overflow-hidden"
       style={{ display: "flex", flexDirection: "column", background: "var(--page-background)" }}
     >
-      <TopBar />
-      <SubBar />
       <div style={{ display: "flex", flexDirection: "row", flex: "1 1 0%", minHeight: 0 }}>
-        <Canvas />
-        <PropertyPanel />
-        <RightSidebar />
+        <CanvasWithPhonePanel phone={phone} setPhone={setPhone} />
       </div>
     </div>
     </TooltipProvider>
